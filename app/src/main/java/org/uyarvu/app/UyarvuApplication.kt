@@ -10,6 +10,8 @@ class UyarvuApplication : Application() {
             applicationContext,
             UyarvuDatabase::class.java,
             "uyarvu_db"
-        ).build()
+        )
+            .addMigrations(UyarvuDatabase.MIGRATION_2_3)
+            .build()
     }
 }
