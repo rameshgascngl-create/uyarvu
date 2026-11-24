@@ -2,9 +2,9 @@ name: UYARVU Android QA
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, phase3c-development ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, phase3c-development ]
 
 jobs:
   kotlin-compile-and-unit-tests:
