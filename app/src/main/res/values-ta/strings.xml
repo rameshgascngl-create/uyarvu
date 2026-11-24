@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">உயர்வு</string>
+    <string name="app_tagline">கற்க. வளர்க. வெல்க.</string>
+    <string name="nav_today">இன்று</string>
+    <string name="nav_study">படிப்பு</string>
+    <string name="nav_grow">வளர்ச்சி</string>
+    <string name="nav_guide">வழிகாட்டி</string>
+    <string name="home_q_study">இன்று என்ன படிக்கலாம்</string>
+    <string name="home_q_deadline">அடுத்த காலக்கெடு</string>
+    <string name="home_q_attention">கவனம் தேவை</string>
+    <string name="home_q_opportunity">சரிபார்க்கப்பட்ட வாய்ப்பு</string>
+    <string name="home_q_progress">வாராந்திர தனிப்பட்ட முன்னேற்றம்</string>
+    <string name="att_status_safe">வழக்கமான தேர்வு எழுதத் தகுதி உள்ளது</string>
+    <string name="att_status_condonation">கல்வி நிறுவன மன்னிப்பு வரம்பில் உள்ளது</string>
+    <string name="att_status_insufficient">குறைந்தபட்ச வருகை வரம்பிற்குக் கீழ் உள்ளது</string>
+    <string name="att_impossible_warning">மீதமுள்ள வகுப்புகளில் இலக்கை எட்ட முடியாது. தயவுசெய்து உங்கள் துறைத் தலைவர் அல்லது கல்வி ஆலோசகரை அணுகவும்.</string>
+    <string name="privacy_offline_badge">100% ஆஃப்லைன் · கணக்கு தேவையில்லை</string>
+</resources>

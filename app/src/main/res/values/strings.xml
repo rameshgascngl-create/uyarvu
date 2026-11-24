@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">UYARVU</string>
+    <string name="app_tagline">Learn. Grow. Succeed.</string>
+    <string name="nav_today">Today</string>
+    <string name="nav_study">Study</string>
+    <string name="nav_grow">Grow</string>
+    <string name="nav_guide">Guide</string>
+    <string name="home_q_study">What to study today</string>
+    <string name="home_q_deadline">Approaching deadline</string>
+    <string name="home_q_attention">Needs attention</string>
+    <string name="home_q_opportunity">Verified opportunity</string>
+    <string name="home_q_progress">Weekly personal progress</string>
+    <string name="att_status_safe">Eligible for regular examination</string>
+    <string name="att_status_condonation">In institutional condonation range</string>
+    <string name="att_status_insufficient">Below minimum threshold</string>
+    <string name="att_impossible_warning">Target cannot be reached within remaining classes. Please consult your department or academic advisor.</string>
+    <string name="privacy_offline_badge">100% Offline · No Account Required</string>
+</resources>
