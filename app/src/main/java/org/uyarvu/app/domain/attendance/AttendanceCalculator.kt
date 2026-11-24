@@ -14,7 +14,8 @@ enum class EligibilityCategory {
 data class InstitutionalAttendancePolicy(
     val regularThresholdPct: Double = 75.0,
     val condonationFloorPct: Double = 65.0,
-    val medicalCondonationFloorPct: Double = 50.0
+    val medicalCondonationFloorPct: Double = 50.0,
+    val regulationSource: String = "Configurable institutional preset (initial TN college defaults)"
 ) {
     init {
         require(regularThresholdPct in 1.0..99.9) { "Regular threshold must be in (1.0, 99.9]" }
@@ -35,7 +36,20 @@ data class AttendanceEvaluation(
     val isDecliningWarning: Boolean
 )
 
+data class SubjectAttendanceInput(
+    val courseId: Long,
+    val attended: Int,
+    val absent: Int,
+    val cancelled: Int = 0,
+    val notRecorded: Int = 0,
+    val remainingPlannedClasses: Int = 0
+)
+
 object AttendanceCalculator {
+    /**
+     * Cancelled and not-yet-conducted classes are excluded from the conducted-class denominator.
+     * Percentages are never silently rounded upwards for eligibility classification.
+     */
     fun evaluate(
         attended: Int,
         conducted: Int,
@@ -75,7 +89,6 @@ object AttendanceCalculator {
             floor((attended / p) - conducted).toInt().coerceAtLeast(0)
         } else 0
 
-        // Exact specification formula: x = max(0, ceil((pT - A) / (1 - p)))
         val neededForRegular = if (pct < policy.regularThresholdPct) {
             ceil(((p * conducted) - attended) / (1.0 - p)).toInt().coerceAtLeast(0)
         } else 0
@@ -84,7 +97,6 @@ object AttendanceCalculator {
         val maxPossibleAtEnd = attended + remainingPlannedClasses
         val maxPossiblePct = if (totalAtEnd == 0) 100.0 else (maxPossibleAtEnd.toDouble() / totalAtEnd) * 100.0
 
-        // Projected semester-end % assuming current attendance rate continues
         val projectedEnd = if (totalAtEnd == 0) pct else {
             val expectedAdditional = (pct / 100.0) * remainingPlannedClasses
             ((attended + expectedAdditional) / totalAtEnd) * 100.0
@@ -103,6 +115,36 @@ object AttendanceCalculator {
             isRegularTargetAchievable = maxPossiblePct >= policy.regularThresholdPct,
             projectedSemesterEndPct = projectedEnd,
             isDecliningWarning = decliningWarning
+        )
+    }
+
+    fun evaluateSubject(
+        input: SubjectAttendanceInput,
+        policy: InstitutionalAttendancePolicy = InstitutionalAttendancePolicy(),
+        recentConsecutiveAbsences: Int = 0
+    ): AttendanceEvaluation {
+        val conducted = input.attended + input.absent
+        return evaluate(
+            attended = input.attended,
+            conducted = conducted,
+            remainingPlannedClasses = input.remainingPlannedClasses,
+            policy = policy,
+            recentConsecutiveAbsences = recentConsecutiveAbsences
+        )
+    }
+
+    fun evaluateAggregate(
+        subjects: List<SubjectAttendanceInput>,
+        policy: InstitutionalAttendancePolicy = InstitutionalAttendancePolicy()
+    ): AttendanceEvaluation {
+        val totalAttended = subjects.sumOf { it.attended }
+        val totalConducted = subjects.sumOf { it.attended + it.absent }
+        val totalRemaining = subjects.sumOf { it.remainingPlannedClasses }
+        return evaluate(
+            attended = totalAttended,
+            conducted = totalConducted,
+            remainingPlannedClasses = totalRemaining,
+            policy = policy
         )
     }
 }

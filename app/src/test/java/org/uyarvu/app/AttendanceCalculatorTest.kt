@@ -7,6 +7,7 @@ import org.junit.Test
 import org.uyarvu.app.domain.attendance.AttendanceCalculator
 import org.uyarvu.app.domain.attendance.EligibilityCategory
 import org.uyarvu.app.domain.attendance.InstitutionalAttendancePolicy
+import org.uyarvu.app.domain.attendance.SubjectAttendanceInput
 
 class AttendanceCalculatorTest {
     @Test
@@ -25,24 +26,34 @@ class AttendanceCalculatorTest {
     }
 
     @Test
-    fun condonationZone_computesExactRecoveryClasses() {
-        // 21/30 = 70% -> x = ceil((0.75*30 - 21)/0.25) = ceil(1.5/0.25) = 6
-        val result = AttendanceCalculator.evaluate(attended = 21, conducted = 30, remainingPlannedClasses = 20)
-        assertEquals(EligibilityCategory.CONDONATION_ELIGIBLE, result.category)
-        assertEquals(6, result.classesNeededForRegular)
-        assertTrue(result.isRegularTargetAchievable)
+    fun exactThresholdAndNoUpwardRounding_boundaryCheck() {
+        // 749 / 1000 = 74.9% -> MUST NOT round up to 75%
+        val below = AttendanceCalculator.evaluate(attended = 749, conducted = 1000, remainingPlannedClasses = 20)
+        assertEquals(EligibilityCategory.CONDONATION_ELIGIBLE, below.category)
+        assertEquals(4, below.classesNeededForRegular)
+
+        // Exact 75.0% -> Normal eligible
+        val exact = AttendanceCalculator.evaluate(attended = 75, conducted = 100, remainingPlannedClasses = 20)
+        assertEquals(EligibilityCategory.NORMAL_ELIGIBLE, exact.category)
     }
 
     @Test
-    fun medicalCondonationZone_between50And65() {
-        val result = AttendanceCalculator.evaluate(attended = 12, conducted = 20, remainingPlannedClasses = 40)
-        assertEquals(EligibilityCategory.MEDICAL_CONDONATION_ELIGIBLE, result.category)
+    fun cancelledClassesExcludedFromDenominator() {
+        val subject = SubjectAttendanceInput(courseId = 1L, attended = 15, absent = 5, cancelled = 10, remainingPlannedClasses = 10)
+        val result = AttendanceCalculator.evaluateSubject(subject)
+        assertEquals(20, result.conductedClasses)
+        assertEquals(75.0, result.percentage, 0.001)
+        assertEquals(EligibilityCategory.NORMAL_ELIGIBLE, result.category)
     }
 
     @Test
-    fun semesterRepeatRisk_below50() {
-        val result = AttendanceCalculator.evaluate(attended = 9, conducted = 20, remainingPlannedClasses = 40)
-        assertEquals(EligibilityCategory.SEMESTER_REPEAT_RISK, result.category)
+    fun aggregateAttendanceAcrossSubjects() {
+        val s1 = SubjectAttendanceInput(courseId = 1L, attended = 18, absent = 2)
+        val s2 = SubjectAttendanceInput(courseId = 2L, attended = 12, absent = 8)
+        val agg = AttendanceCalculator.evaluateAggregate(listOf(s1, s2))
+        assertEquals(40, agg.conductedClasses)
+        assertEquals(30, agg.attendedClasses)
+        assertEquals(75.0, agg.percentage, 0.001)
     }
 
     @Test
