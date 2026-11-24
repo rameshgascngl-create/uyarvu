@@ -6,14 +6,47 @@
     <string name="nav_study">படிப்பு</string>
     <string name="nav_grow">வளர்ச்சி</string>
     <string name="nav_guide">வழிகாட்டி</string>
-    <string name="home_q_study">இன்று என்ன படிக்கலாம்</string>
-    <string name="home_q_deadline">அடுத்த காலக்கெடு</string>
-    <string name="home_q_attention">கவனம் தேவை</string>
-    <string name="home_q_opportunity">சரிபார்க்கப்பட்ட வாய்ப்பு</string>
-    <string name="home_q_progress">வாராந்திர தனிப்பட்ட முன்னேற்றம்</string>
-    <string name="att_status_safe">வழக்கமான தேர்வு எழுதத் தகுதி உள்ளது</string>
-    <string name="att_status_condonation">கல்வி நிறுவன மன்னிப்பு வரம்பில் உள்ளது</string>
-    <string name="att_status_insufficient">குறைந்தபட்ச வருகை வரம்பிற்குக் கீழ் உள்ளது</string>
+
+    <string name="onboard_welcome">உயர்வுக்கு நல்வரவு</string>
+    <string name="onboard_subtitle">உங்கள் ஆஃப்லைன் கல்வித் துணைவன். கணக்கு, கைபேசி எண் அல்லது இணையம் தேவையில்லை.</string>
+    <string name="onboard_lang_label">விரும்பும் மொழி</string>
+    <string name="onboard_name_label">உங்கள் பெயர்</string>
+    <string name="onboard_institution_label">கல்லூரி அல்லது பல்கலைக்கழகம் (விருப்பம்)</string>
+    <string name="onboard_degree_label">பட்டம் மற்றும் துறை (எ.கா. B.Com, B.Sc CS)</string>
+    <string name="onboard_year_label">கல்வியாண்டு</string>
+    <string name="onboard_sem_label">பருவம் (Semester)</string>
+    <string name="onboard_days_label">வேலை நாட்கள்</string>
+    <string name="onboard_save_btn">கற்றலைத் தொடங்கு</string>
+
+    <string name="home_greeting">வணக்கம், %1$s</string>
+    <string name="home_q_classes">1. இன்றைய வகுப்புகள்</string>
+    <string name="home_q_attendance">2. தற்போதைய வருகைப் பதிவு</string>
+    <string name="home_q_risk">3. தேர்வுத் தகுதி நிலை</string>
+    <string name="home_q_deadlines">4. நெருங்கும் காலக்கெடுகள்</string>
+    <string name="home_q_priority">5. இன்றைய முதன்மைப் பணி</string>
+    <string name="home_no_classes">இன்று வகுப்புகள் எதுவும் திட்டமிடப்படவில்லை.</string>
+
+    <string name="att_title">வருகைப் பதிவு நுண்ணறிவு</string>
+    <string name="att_disclaimer">இந்த வகைப்பாடுகள் உங்கள் கல்வி நிறுவனத்தின் விதிகளுக்கு உட்பட்டவை; தேர்வுத் தகுதிக்கோ மன்னிப்புக்கோ உத்தரவாதம் அளிக்காது.</string>
+    <string name="att_status_normal">வழக்கமான தேர்வுத் தகுதி (≥ %1$d%%)</string>
+    <string name="att_status_condonation">மன்னிப்புக் கட்டண வரம்பு (%1$d%%–&lt;%2$d%%)</string>
+    <string name="att_status_medical">மருத்துவ மன்னிப்பு வரம்பு (%1$d%%–&lt;%2$d%%)</string>
+    <string name="att_status_repeat">பருவம் மீண்டும் பயில வேண்டிய நிலை (&lt;%1$d%%)</string>
+    <string name="att_status_none">இன்னும் வகுப்புகள் நடைபெறவில்லை</string>
+    <string name="att_recover_classes">%2$d%% எட்ட அடுத்த %1$d வகுப்புகளில் தொடர்ந்து பங்கேற்கவும்.</string>
+    <string name="att_safe_allowance">%2$d%% குறையாமல் இருக்க %1$d வகுப்பு வரை விடுப்பு எடுக்கலாம்.</string>
     <string name="att_impossible_warning">மீதமுள்ள வகுப்புகளில் இலக்கை எட்ட முடியாது. தயவுசெய்து உங்கள் துறைத் தலைவர் அல்லது கல்வி ஆலோசகரை அணுகவும்.</string>
+
+    <string name="tt_title">கால அட்டவணை</string>
+    <string name="tt_theory">பாட வகுப்பு</string>
+    <string name="tt_practical">செய்முறை வகுப்பு</string>
+    <string name="tt_holiday">விடுமுறை நாள்</string>
+    <string name="tt_compensatory">ஈடுசெய்யும் வேலை நாள்</string>
+    <string name="tt_cancelled">ரத்து செய்யப்பட்டது</string>
+
+    <string name="profile_title">மாணவர் சுயவிவரம் &amp; தரவு</string>
+    <string name="profile_next_sem">அடுத்த பருவத்திற்குச் செல் (பழைய பதிவுகளைக் காக்க)</string>
+    <string name="profile_export">JSON காப்புப்பிரதி ஏற்றுமதி</string>
+    <string name="profile_delete_all">அனைத்து உள்ளூர் தரவையும் நீக்கு</string>
     <string name="privacy_offline_badge">100% ஆஃப்லைன் · கணக்கு தேவையில்லை</string>
 </resources>

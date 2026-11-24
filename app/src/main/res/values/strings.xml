@@ -6,14 +6,47 @@
     <string name="nav_study">Study</string>
     <string name="nav_grow">Grow</string>
     <string name="nav_guide">Guide</string>
-    <string name="home_q_study">What to study today</string>
-    <string name="home_q_deadline">Approaching deadline</string>
-    <string name="home_q_attention">Needs attention</string>
-    <string name="home_q_opportunity">Verified opportunity</string>
-    <string name="home_q_progress">Weekly personal progress</string>
-    <string name="att_status_safe">Eligible for regular examination</string>
-    <string name="att_status_condonation">In institutional condonation range</string>
-    <string name="att_status_insufficient">Below minimum threshold</string>
+
+    <string name="onboard_welcome">Welcome to UYARVU</string>
+    <string name="onboard_subtitle">Your offline academic companion. No account, phone number, or internet required.</string>
+    <string name="onboard_lang_label">Preferred language</string>
+    <string name="onboard_name_label">Preferred name</string>
+    <string name="onboard_institution_label">College or university (optional)</string>
+    <string name="onboard_degree_label">Degree &amp; department (e.g., B.Com, B.Sc CS)</string>
+    <string name="onboard_year_label">Academic year</string>
+    <string name="onboard_sem_label">Semester</string>
+    <string name="onboard_days_label">Working days</string>
+    <string name="onboard_save_btn">Start Learning</string>
+
+    <string name="home_greeting">Hello, %1$s</string>
+    <string name="home_q_classes">1. Today's classes</string>
+    <string name="home_q_attendance">2. Current attendance</string>
+    <string name="home_q_risk">3. Examination eligibility status</string>
+    <string name="home_q_deadlines">4. Approaching deadlines</string>
+    <string name="home_q_priority">5. Today's top priority</string>
+    <string name="home_no_classes">No classes scheduled for today.</string>
+
+    <string name="att_title">Attendance Intelligence</string>
+    <string name="att_disclaimer">Categories reflect configurable institutional rules and do not guarantee examination eligibility or condonation.</string>
+    <string name="att_status_normal">Normal eligibility (≥ %1$d%%)</string>
+    <string name="att_status_condonation">Potential condonation range (%1$d%%–&lt;%2$d%%)</string>
+    <string name="att_status_medical">Potential medical condonation (%1$d%%–&lt;%2$d%%)</string>
+    <string name="att_status_repeat">Potential semester-repeat risk (&lt;%1$d%%)</string>
+    <string name="att_status_none">No classes conducted yet</string>
+    <string name="att_recover_classes">Attend the next %1$d consecutive class(es) to reach %2$d%%.</string>
+    <string name="att_safe_allowance">You can miss up to %1$d class(es) and stay at or above %2$d%%.</string>
     <string name="att_impossible_warning">Target cannot be reached within remaining classes. Please consult your department or academic advisor.</string>
+
+    <string name="tt_title">Timetable</string>
+    <string name="tt_theory">Theory</string>
+    <string name="tt_practical">Practical</string>
+    <string name="tt_holiday">Holiday</string>
+    <string name="tt_compensatory">Compensatory Working Day</string>
+    <string name="tt_cancelled">Cancelled</string>
+
+    <string name="profile_title">Student Profile &amp; Data</string>
+    <string name="profile_next_sem">Advance to Next Semester (Keep History)</string>
+    <string name="profile_export">Export Local JSON Backup</string>
+    <string name="profile_delete_all">Delete All Local Data</string>
     <string name="privacy_offline_badge">100% Offline · No Account Required</string>
 </resources>

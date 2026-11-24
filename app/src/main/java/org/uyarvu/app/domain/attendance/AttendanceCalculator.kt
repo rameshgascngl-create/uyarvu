@@ -4,11 +4,23 @@ import kotlin.math.ceil
 import kotlin.math.floor
 
 enum class EligibilityCategory {
-    REGULAR_ELIGIBLE,
+    NORMAL_ELIGIBLE,
     CONDONATION_ELIGIBLE,
     MEDICAL_CONDONATION_ELIGIBLE,
-    INSUFFICIENT_ATTENDANCE,
+    SEMESTER_REPEAT_RISK,
     NO_CLASSES_CONDUCTED
+}
+
+data class InstitutionalAttendancePolicy(
+    val regularThresholdPct: Double = 75.0,
+    val condonationFloorPct: Double = 65.0,
+    val medicalCondonationFloorPct: Double = 50.0
+) {
+    init {
+        require(regularThresholdPct in 1.0..99.9) { "Regular threshold must be in (1.0, 99.9]" }
+        require(condonationFloorPct in 0.0..regularThresholdPct) { "Invalid condonation floor" }
+        require(medicalCondonationFloorPct in 0.0..condonationFloorPct) { "Invalid medical floor" }
+    }
 }
 
 data class AttendanceEvaluation(
@@ -18,7 +30,9 @@ data class AttendanceEvaluation(
     val category: EligibilityCategory,
     val safeAbsenceAllowance: Int,
     val classesNeededForRegular: Int,
-    val isRegularTargetAchievable: Boolean
+    val isRegularTargetAchievable: Boolean,
+    val projectedSemesterEndPct: Double,
+    val isDecliningWarning: Boolean
 )
 
 object AttendanceCalculator {
@@ -26,9 +40,8 @@ object AttendanceCalculator {
         attended: Int,
         conducted: Int,
         remainingPlannedClasses: Int,
-        regularThresholdPct: Double = 75.0,
-        condonationFloorPct: Double = 65.0,
-        medicalFloorPct: Double = 60.0
+        policy: InstitutionalAttendancePolicy = InstitutionalAttendancePolicy(),
+        recentConsecutiveAbsences: Int = 0
     ): AttendanceEvaluation {
         require(attended >= 0 && conducted >= 0 && attended <= conducted) {
             "Invalid attendance counts: attended=$attended, conducted=$conducted"
@@ -43,29 +56,42 @@ object AttendanceCalculator {
                 category = EligibilityCategory.NO_CLASSES_CONDUCTED,
                 safeAbsenceAllowance = 0,
                 classesNeededForRegular = 0,
-                isRegularTargetAchievable = true
+                isRegularTargetAchievable = true,
+                projectedSemesterEndPct = 100.0,
+                isDecliningWarning = false
             )
         }
 
         val pct = (attended.toDouble() / conducted.toDouble()) * 100.0
         val category = when {
-            pct >= regularThresholdPct -> EligibilityCategory.REGULAR_ELIGIBLE
-            pct >= condonationFloorPct -> EligibilityCategory.CONDONATION_ELIGIBLE
-            pct >= medicalFloorPct -> EligibilityCategory.MEDICAL_CONDONATION_ELIGIBLE
-            else -> EligibilityCategory.INSUFFICIENT_ATTENDANCE
+            pct >= policy.regularThresholdPct -> EligibilityCategory.NORMAL_ELIGIBLE
+            pct >= policy.condonationFloorPct -> EligibilityCategory.CONDONATION_ELIGIBLE
+            pct >= policy.medicalCondonationFloorPct -> EligibilityCategory.MEDICAL_CONDONATION_ELIGIBLE
+            else -> EligibilityCategory.SEMESTER_REPEAT_RISK
         }
 
-        val targetRatio = regularThresholdPct / 100.0
-        val safeAllowance = if (pct >= regularThresholdPct) {
-            floor((attended / targetRatio) - conducted).toInt().coerceAtLeast(0)
+        val p = policy.regularThresholdPct / 100.0
+        val safeAllowance = if (pct >= policy.regularThresholdPct) {
+            floor((attended / p) - conducted).toInt().coerceAtLeast(0)
         } else 0
 
-        val neededForRegular = if (pct < regularThresholdPct) {
-            ceil(((targetRatio * conducted) - attended) / (1.0 - targetRatio)).toInt().coerceAtLeast(0)
+        // Exact specification formula: x = max(0, ceil((pT - A) / (1 - p)))
+        val neededForRegular = if (pct < policy.regularThresholdPct) {
+            ceil(((p * conducted) - attended) / (1.0 - p)).toInt().coerceAtLeast(0)
         } else 0
 
-        val maxPossiblePct = ((attended + remainingPlannedClasses).toDouble() /
-            (conducted + remainingPlannedClasses).toDouble()) * 100.0
+        val totalAtEnd = conducted + remainingPlannedClasses
+        val maxPossibleAtEnd = attended + remainingPlannedClasses
+        val maxPossiblePct = if (totalAtEnd == 0) 100.0 else (maxPossibleAtEnd.toDouble() / totalAtEnd) * 100.0
+
+        // Projected semester-end % assuming current attendance rate continues
+        val projectedEnd = if (totalAtEnd == 0) pct else {
+            val expectedAdditional = (pct / 100.0) * remainingPlannedClasses
+            ((attended + expectedAdditional) / totalAtEnd) * 100.0
+        }
+
+        val decliningWarning = recentConsecutiveAbsences >= 2 ||
+            (pct in policy.regularThresholdPct..(policy.regularThresholdPct + 3.0))
 
         return AttendanceEvaluation(
             conductedClasses = conducted,
@@ -74,7 +100,9 @@ object AttendanceCalculator {
             category = category,
             safeAbsenceAllowance = safeAllowance,
             classesNeededForRegular = neededForRegular,
-            isRegularTargetAchievable = maxPossiblePct >= regularThresholdPct
+            isRegularTargetAchievable = maxPossiblePct >= policy.regularThresholdPct,
+            projectedSemesterEndPct = projectedEnd,
+            isDecliningWarning = decliningWarning
         )
     }
 }
