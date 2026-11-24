@@ -19,11 +19,11 @@
     <string name="onboard_save_btn">Start Learning</string>
 
     <string name="home_greeting">Hello, %1$s</string>
-    <string name="home_q_classes">1. Today's classes</string>
+    <string name="home_q_classes">1. Today\'s classes</string>
     <string name="home_q_attendance">2. Current attendance</string>
     <string name="home_q_risk">3. Examination eligibility status</string>
     <string name="home_q_deadlines">4. Approaching deadlines</string>
-    <string name="home_q_priority">5. Today's top priority</string>
+    <string name="home_q_priority">5. Today\'s top priority</string>
     <string name="home_no_classes">No classes scheduled for today.</string>
 
     <string name="att_title">Attendance Intelligence</string>
