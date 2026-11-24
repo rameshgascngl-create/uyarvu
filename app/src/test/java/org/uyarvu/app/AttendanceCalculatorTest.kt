@@ -27,12 +27,10 @@ class AttendanceCalculatorTest {
 
     @Test
     fun exactThresholdAndNoUpwardRounding_boundaryCheck() {
-        // 749 / 1000 = 74.9% -> MUST NOT round up to 75%
         val below = AttendanceCalculator.evaluate(attended = 749, conducted = 1000, remainingPlannedClasses = 20)
         assertEquals(EligibilityCategory.CONDONATION_ELIGIBLE, below.category)
         assertEquals(4, below.classesNeededForRegular)
 
-        // Exact 75.0% -> Normal eligible
         val exact = AttendanceCalculator.evaluate(attended = 75, conducted = 100, remainingPlannedClasses = 20)
         assertEquals(EligibilityCategory.NORMAL_ELIGIBLE, exact.category)
     }
@@ -69,5 +67,35 @@ class AttendanceCalculatorTest {
         val result = AttendanceCalculator.evaluate(attended = 15, conducted = 20, remainingPlannedClasses = 20, policy = policy)
         assertEquals(EligibilityCategory.CONDONATION_ELIGIBLE, result.category)
         assertEquals(5, result.classesNeededForRegular)
+    }
+
+    @Test
+    fun exactThresholds_65_70_75_80_85_90_precisionRegression() {
+        val thresholds = listOf(65.0, 70.0, 75.0, 80.0, 85.0, 90.0)
+        for (t in thresholds) {
+            val policy = InstitutionalAttendancePolicy(
+                regularThresholdPct = t,
+                condonationFloorPct = (t - 10.0).coerceAtLeast(0.0),
+                medicalCondonationFloorPct = (t - 20.0).coerceAtLeast(0.0)
+            )
+            val exactAttended = t.toInt()
+            val exactRes = AttendanceCalculator.evaluate(exactAttended, 100, 10, policy)
+            assertEquals("Expected NORMAL_ELIGIBLE at exact $t%", EligibilityCategory.NORMAL_ELIGIBLE, exactRes.category)
+            assertEquals("Expected 0 recovery classes at exact $t%", 0, exactRes.classesNeededForRegular)
+
+            val belowRes = AttendanceCalculator.evaluate(exactAttended - 1, 100, 50, policy)
+            assertEquals("Expected CONDONATION_ELIGIBLE below $t%", EligibilityCategory.CONDONATION_ELIGIBLE, belowRes.category)
+            assertTrue(belowRes.classesNeededForRegular >= 1)
+        }
+    }
+
+    @Test
+    fun decimalThreshold_exactComparisonAndRecovery() {
+        val policy = InstitutionalAttendancePolicy(regularThresholdPct = 75.5, condonationFloorPct = 65.0, medicalCondonationFloorPct = 50.0)
+        // 75 / 100 = 75.0% < 75.5%
+        val res = AttendanceCalculator.evaluate(attended = 75, conducted = 100, remainingPlannedClasses = 20, policy = policy)
+        assertEquals(EligibilityCategory.CONDONATION_ELIGIBLE, res.category)
+        // (0.755*100 - 75) / 0.245 = 0.5 / 0.245 = 2.04 -> ceil = 3
+        assertEquals(3, res.classesNeededForRegular)
     }
 }

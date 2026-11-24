@@ -1,7 +1,8 @@
 package org.uyarvu.app.domain.attendance
 
-import kotlin.math.ceil
-import kotlin.math.floor
+import java.math.BigDecimal
+import java.math.MathContext
+import java.math.RoundingMode
 
 enum class EligibilityCategory {
     NORMAL_ELIGIBLE,
@@ -46,9 +47,13 @@ data class SubjectAttendanceInput(
 )
 
 object AttendanceCalculator {
+    private val HUNDRED = BigDecimal(100)
+    private val MC = MathContext(16, RoundingMode.HALF_UP)
+
     /**
      * Cancelled and not-yet-conducted classes are excluded from the conducted-class denominator.
-     * Percentages are never silently rounded upwards for eligibility classification.
+     * All eligibility comparisons, recovery counts, and safe allowances use exact BigDecimal
+     * arithmetic so IEEE-754 binary float representation never skews boundary classifications.
      */
     fun evaluate(
         attended: Int,
@@ -76,43 +81,72 @@ object AttendanceCalculator {
             )
         }
 
-        val pct = (attended.toDouble() / conducted.toDouble()) * 100.0
+        val bdAttended = BigDecimal(attended)
+        val bdConducted = BigDecimal(conducted)
+        val bdRegularPct = BigDecimal.valueOf(policy.regularThresholdPct)
+        val bdCondonationPct = BigDecimal.valueOf(policy.condonationFloorPct)
+        val bdMedicalPct = BigDecimal.valueOf(policy.medicalCondonationFloorPct)
+
+        // Exact cross-multiplied comparisons: attended * 100 >= thresholdPct * conducted
+        val attendedTimes100 = bdAttended.multiply(HUNDRED)
+        val regularReq = bdRegularPct.multiply(bdConducted)
+        val condonationReq = bdCondonationPct.multiply(bdConducted)
+        val medicalReq = bdMedicalPct.multiply(bdConducted)
+
         val category = when {
-            pct >= policy.regularThresholdPct -> EligibilityCategory.NORMAL_ELIGIBLE
-            pct >= policy.condonationFloorPct -> EligibilityCategory.CONDONATION_ELIGIBLE
-            pct >= policy.medicalCondonationFloorPct -> EligibilityCategory.MEDICAL_CONDONATION_ELIGIBLE
+            attendedTimes100.compareTo(regularReq) >= 0 -> EligibilityCategory.NORMAL_ELIGIBLE
+            attendedTimes100.compareTo(condonationReq) >= 0 -> EligibilityCategory.CONDONATION_ELIGIBLE
+            attendedTimes100.compareTo(medicalReq) >= 0 -> EligibilityCategory.MEDICAL_CONDONATION_ELIGIBLE
             else -> EligibilityCategory.SEMESTER_REPEAT_RISK
         }
 
-        val p = policy.regularThresholdPct / 100.0
-        val safeAllowance = if (pct >= policy.regularThresholdPct) {
-            floor((attended / p) - conducted).toInt().coerceAtLeast(0)
+        val p = bdRegularPct.divide(HUNDRED, MC)
+        val oneMinusP = BigDecimal.ONE.subtract(p)
+
+        val safeAllowance = if (category == EligibilityCategory.NORMAL_ELIGIBLE) {
+            val maxConducted = bdAttended.divide(p, 10, RoundingMode.FLOOR)
+            maxConducted.subtract(bdConducted).setScale(0, RoundingMode.FLOOR).toInt().coerceAtLeast(0)
         } else 0
 
-        val neededForRegular = if (pct < policy.regularThresholdPct) {
-            ceil(((p * conducted) - attended) / (1.0 - p)).toInt().coerceAtLeast(0)
+        val neededForRegular = if (category != EligibilityCategory.NORMAL_ELIGIBLE) {
+            val numerator = p.multiply(bdConducted).subtract(bdAttended)
+            if (numerator.compareTo(BigDecimal.ZERO) <= 0) 0
+            else numerator.divide(oneMinusP, 0, RoundingMode.CEILING).toInt().coerceAtLeast(0)
         } else 0
 
         val totalAtEnd = conducted + remainingPlannedClasses
         val maxPossibleAtEnd = attended + remainingPlannedClasses
-        val maxPossiblePct = if (totalAtEnd == 0) 100.0 else (maxPossibleAtEnd.toDouble() / totalAtEnd) * 100.0
-
-        val projectedEnd = if (totalAtEnd == 0) pct else {
-            val expectedAdditional = (pct / 100.0) * remainingPlannedClasses
-            ((attended + expectedAdditional) / totalAtEnd) * 100.0
+        val isAchievable = if (totalAtEnd == 0) {
+            true
+        } else {
+            BigDecimal(maxPossibleAtEnd).multiply(HUNDRED)
+                .compareTo(bdRegularPct.multiply(BigDecimal(totalAtEnd))) >= 0
         }
 
+        val pctDecimal = attendedTimes100.divide(bdConducted, 6, RoundingMode.HALF_UP)
+        val projectedEnd = if (totalAtEnd == 0) {
+            pctDecimal.toDouble()
+        } else {
+            val expectedAdditional = pctDecimal.divide(HUNDRED, MC).multiply(BigDecimal(remainingPlannedClasses))
+            bdAttended.add(expectedAdditional)
+                .divide(BigDecimal(totalAtEnd), 6, RoundingMode.HALF_UP)
+                .multiply(HUNDRED)
+                .toDouble()
+        }
+
+        val pctDouble = pctDecimal.toDouble()
         val decliningWarning = recentConsecutiveAbsences >= 2 ||
-            (pct in policy.regularThresholdPct..(policy.regularThresholdPct + 3.0))
+            (category == EligibilityCategory.NORMAL_ELIGIBLE &&
+                pctDecimal.compareTo(bdRegularPct.add(BigDecimal(3))) <= 0)
 
         return AttendanceEvaluation(
             conductedClasses = conducted,
             attendedClasses = attended,
-            percentage = pct,
+            percentage = pctDouble,
             category = category,
             safeAbsenceAllowance = safeAllowance,
             classesNeededForRegular = neededForRegular,
-            isRegularTargetAchievable = maxPossiblePct >= policy.regularThresholdPct,
+            isRegularTargetAchievable = isAchievable,
             projectedSemesterEndPct = projectedEnd,
             isDecliningWarning = decliningWarning
         )
